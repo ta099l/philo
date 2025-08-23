@@ -10,13 +10,22 @@ void set_stop(struct s_sim *sim, int v)
 /* order lock: min->max to avoid deadlock */
 void take_forks(struct s_philo *p)
 {
-        int a = (p->left < p->right) ? p->left : p->right;
-        int b = p->left ^ p->right ^ a;
+        usleep(100 * p->id);
+        if(p->left < p->right)
+        {
+                pthread_mutex_lock(&p->sim->forks[p->left]);
+                print_state(p, "has taken a fork");
+                pthread_mutex_lock(&p->sim->forks[p->right]);
+                print_state(p, "has taken a fork");
+        }
+        else
+        {
+                pthread_mutex_lock(&p->sim->forks[p->right]);
+                print_state(p, "has taken a fork");
+                pthread_mutex_lock(&p->sim->forks[p->left]);
+                print_state(p, "has taken a fork"); 
+        }
 
-        pthread_mutex_lock(&p->sim->forks[a]);
-        print_state(p, "has taken a fork");
-        pthread_mutex_lock(&p->sim->forks[b]);
-        print_state(p, "has taken a fork");
 }
 
 void put_forks(struct s_philo *p)

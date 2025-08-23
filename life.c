@@ -24,7 +24,7 @@ static int eat_act(struct s_philo *p)
 {
         print_state(p, "is eating");
         pthread_mutex_lock(&p->mx);
-        p->last_meal_ms = now_ms();
+        p->last_meal_ms = now_ms() - since_start(p->sim);
         p->meals += 1;
         pthread_mutex_unlock(&p->mx);
         if (msleep_check(p, p->sim->conf.time_eat))
@@ -52,25 +52,25 @@ static void solo(struct s_philo *p)
 
 void *run(void *arg)
 {
-        struct s_philo *p = (struct s_philo *)arg;
-        struct s_conf *c = &p->sim->conf;
+	struct s_philo *p = (struct s_philo *)arg;
+	struct s_conf *c = &p->sim->conf;
 
-        if (p->id % 2 == 0)
-                usleep(500);
-        if (c->n == 1)
-                return (solo(p), NULL);
-        while (!get_stop(p->sim))
-        {
-                think_act(p);
-                take_forks(p);
-                if (eat_act(p))
-                {
-                        put_forks(p);
-                        break;
-                }
-                put_forks(p);
-                if (sleep_act(p))
-                        break;
-        }
-        return (NULL);
+	if (p->id % 2 == 0)
+		usleep(500);
+	if (c->n == 1)
+		return (solo(p), NULL);
+	while (!get_stop(p->sim))
+	{
+		take_forks(p);
+		if (eat_act(p))
+		{
+			put_forks(p);
+			break;
+		}
+		put_forks(p);
+		think_act(p);
+		if (sleep_act(p))
+			break;
+	}
+	return (NULL);
 }
